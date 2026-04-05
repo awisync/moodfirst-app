@@ -1270,6 +1270,9 @@
     const today = new Date().toISOString().split('T')[0];
     saveToHistory({ date: today, result: 'blocked', status: 'Do Not Trade Today', market: '' });
 
+    // Auto backup to Drive if connected
+    if (driveToken) backupToDrive(true);
+
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
@@ -1317,6 +1320,9 @@
     // Save to history
     const today = new Date().toISOString().split('T')[0];
     saveToHistory({ date: today, result, status: r.status, market });
+
+    // Auto backup to Drive if connected
+    if (driveToken) backupToDrive(true);
 
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
@@ -1473,12 +1479,11 @@
     } catch(e) { console.error(e); }
   }
 
-  async function backupToDrive() {
-    if (!driveToken) { alert('Pehle Connect karo!'); return; }
+  async function backupToDrive(silent = false) {
+    if (!driveToken) { if (!silent) alert('Pehle Connect karo!'); return; }
     const history = getHistory();
-    const blob = new Blob([JSON.stringify(history)], { type: 'application/json' });
 
-    document.getElementById('driveStatus').textContent = 'Saving...';
+    if (!silent) document.getElementById('driveStatus').textContent = 'Saving...';
 
     try {
       let url, method;
@@ -1505,9 +1510,10 @@
       });
 
       const now = new Date().toLocaleTimeString('en-IN');
-      document.getElementById('driveStatus').textContent = 'Backup saved ✅ — ' + now;
+      if (!silent) document.getElementById('driveStatus').textContent = 'Backup saved ✅ — ' + now;
+      else document.getElementById('driveStatus').textContent = 'Auto saved ✅ — ' + now;
     } catch(e) {
-      document.getElementById('driveStatus').textContent = 'Error saving. Try again.';
+      if (!silent) document.getElementById('driveStatus').textContent = 'Error saving. Try again.';
     }
   }
 

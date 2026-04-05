@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MoodFirst — Trade Check</title>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Manrope:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -641,8 +642,157 @@
     color: var(--p1);
   }
 
+  /* Drive Sync */
+  .drive-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 16px 18px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .drive-icon { font-size: 22px; flex-shrink: 0; }
+  .drive-info { flex: 1; }
+  .drive-title { font-family: 'Outfit', sans-serif; font-weight: 600; font-size: 13px; color: #fff; margin-bottom: 2px; }
+  .drive-status { font-size: 11px; color: var(--muted); }
+  .drive-btn { padding: 8px 14px; border-radius: 10px; border: none; font-family: 'Outfit', sans-serif; font-weight: 600; font-size: 12px; cursor: pointer; transition: all 0.2s; flex-shrink: 0; }
+  .drive-btn.connect { background: rgba(79,142,247,0.15); color: var(--p1); border: 1px solid rgba(79,142,247,0.3); }
+  .drive-btn.connect:hover { background: rgba(79,142,247,0.25); }
+  .drive-btn.sync { background: rgba(34,197,94,0.15); color: var(--good); border: 1px solid rgba(34,197,94,0.3); }
+  .drive-btn.sync:hover { background: rgba(34,197,94,0.25); }
+  .drive-btn.restore { background: rgba(249,115,22,0.15); color: var(--p2); border: 1px solid rgba(249,115,22,0.3); }
+  .drive-btn.restore:hover { background: rgba(249,115,22,0.25); }
+  .drive-actions { display: flex; gap: 6px; flex-shrink: 0; }
+
   /* Hidden */
   .hidden { display: none !important; }
+
+  /* Calendar */
+  .calendar-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 20px;
+    margin-top: 20px;
+  }
+
+  .calendar-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+
+  .cal-title {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+    color: #fff;
+  }
+
+  .cal-nav {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-size: 14px;
+    width: 30px;
+    height: 30px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+  }
+  .cal-nav:hover { background: rgba(255,255,255,0.12); }
+
+  .cal-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+  }
+
+  .cal-day-label {
+    text-align: center;
+    font-size: 10px;
+    color: var(--muted);
+    font-weight: 600;
+    padding: 4px 0;
+    letter-spacing: 0.5px;
+  }
+
+  .cal-day {
+    aspect-ratio: 1;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    color: var(--muted);
+    cursor: default;
+    position: relative;
+    transition: all 0.15s;
+  }
+
+  .cal-day.has-data {
+    cursor: pointer;
+    color: #fff;
+    background: rgba(255,255,255,0.04);
+  }
+  .cal-day.has-data:hover { background: rgba(255,255,255,0.1); }
+
+  .cal-day.today {
+    border: 1px solid rgba(79,142,247,0.4);
+    color: var(--p1);
+  }
+
+  .cal-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    margin-top: 2px;
+    flex-shrink: 0;
+  }
+  .cal-dot.green { background: var(--good); }
+  .cal-dot.yellow { background: var(--warn); }
+  .cal-dot.red { background: var(--danger); }
+  .cal-dot.blocked { background: var(--muted); }
+
+  /* Detail popup */
+  .cal-detail {
+    background: rgba(79,142,247,0.08);
+    border: 1px solid rgba(79,142,247,0.25);
+    border-radius: 14px;
+    padding: 16px 18px;
+    margin-top: 14px;
+    animation: slideIn 0.25s cubic-bezier(0.16,1,0.3,1);
+  }
+
+  .cal-detail-date {
+    font-size: 11px;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+
+  .cal-detail-status {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+    margin-bottom: 4px;
+  }
+
+  .cal-detail-status.green { color: var(--good); }
+  .cal-detail-status.yellow { color: var(--warn); }
+  .cal-detail-status.red { color: var(--danger); }
+  .cal-detail-status.blocked { color: var(--muted); }
+
+  .cal-detail-market {
+    font-size: 12px;
+    color: var(--muted);
+  }
 </style>
 </head>
 <body>
@@ -852,10 +1002,41 @@
 
 <!-- HISTORY SCREEN -->
 <div class="history-screen hidden" id="historyScreen">
+
+  <!-- GOOGLE DRIVE SYNC -->
+  <div class="drive-section">
+    <div class="drive-icon">☁️</div>
+    <div class="drive-info">
+      <div class="drive-title">Google Drive Backup</div>
+      <div class="drive-status" id="driveStatus">Not connected</div>
+    </div>
+    <div class="drive-actions" id="driveActions">
+      <button class="drive-btn connect" onclick="connectDrive()">Connect</button>
+    </div>
+  </div>
   <div class="stats-strip" id="statsStrip"></div>
   <div class="history-header">
     <div class="history-title">Past Check-ins</div>
     <button class="history-clear" onclick="clearHistory()">Clear All</button>
+  </div>
+
+  <!-- CALENDAR -->
+  <div class="calendar-wrap">
+    <div class="calendar-header">
+      <button class="cal-nav" onclick="calPrev()">&#8249;</button>
+      <div class="cal-title" id="calTitle"></div>
+      <button class="cal-nav" onclick="calNext()">&#8250;</button>
+    </div>
+    <div class="cal-grid" id="calGrid"></div>
+    <div class="cal-detail hidden" id="calDetail">
+      <div class="cal-detail-date" id="calDetailDate"></div>
+      <div class="cal-detail-status" id="calDetailStatus"></div>
+      <div class="cal-detail-market" id="calDetailMarket"></div>
+    </div>
+  </div>
+
+  <div class="history-header" style="margin-top:20px">
+    <div class="history-title">All Check-ins</div>
   </div>
   <div id="historyList"></div>
 </div>
@@ -957,6 +1138,9 @@
     const history = getHistory();
     const listEl = document.getElementById('historyList');
     const statsEl = document.getElementById('statsStrip');
+
+    // Init calendar
+    initCalendar();
 
     // Stats
     const green = history.filter(h => h.result === 'green').length;
@@ -1153,6 +1337,197 @@
     activeTab = 'check';
 
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // ── CALENDAR ──
+  let calYear, calMonth;
+
+  function initCalendar() {
+    const now = new Date();
+    calYear = now.getFullYear();
+    calMonth = now.getMonth();
+    renderCalendar();
+  }
+
+  function calPrev() {
+    calMonth--;
+    if (calMonth < 0) { calMonth = 11; calYear--; }
+    renderCalendar();
+  }
+
+  function calNext() {
+    calMonth++;
+    if (calMonth > 11) { calMonth = 0; calYear++; }
+    renderCalendar();
+  }
+
+  function renderCalendar() {
+    const history = getHistory();
+    const historyMap = {};
+    history.forEach(h => { historyMap[h.date] = h; });
+
+    const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    document.getElementById('calTitle').textContent = months[calMonth] + ' ' + calYear;
+
+    const grid = document.getElementById('calGrid');
+    grid.innerHTML = '';
+
+    // Day labels
+    ['Su','Mo','Tu','We','Th','Fr','Sa'].forEach(d => {
+      const el = document.createElement('div');
+      el.className = 'cal-day-label';
+      el.textContent = d;
+      grid.appendChild(el);
+    });
+
+    const firstDay = new Date(calYear, calMonth, 1).getDay();
+    const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+    const today = new Date().toISOString().split('T')[0];
+
+    // Empty cells
+    for (let i = 0; i < firstDay; i++) {
+      const el = document.createElement('div');
+      el.className = 'cal-day';
+      grid.appendChild(el);
+    }
+
+    // Days
+    for (let d = 1; d <= daysInMonth; d++) {
+      const dateStr = calYear + '-' + String(calMonth+1).padStart(2,'0') + '-' + String(d).padStart(2,'0');
+      const el = document.createElement('div');
+      el.className = 'cal-day';
+      el.innerHTML = '<span>' + d + '</span>';
+
+      if (dateStr === today) el.classList.add('today');
+
+      if (historyMap[dateStr]) {
+        el.classList.add('has-data');
+        const dot = document.createElement('div');
+        dot.className = 'cal-dot ' + historyMap[dateStr].result;
+        el.appendChild(dot);
+        el.onclick = () => showCalDetail(dateStr, historyMap[dateStr]);
+      }
+
+      grid.appendChild(el);
+    }
+
+    // Hide detail on month change
+    document.getElementById('calDetail').classList.add('hidden');
+  }
+
+  function showCalDetail(dateStr, entry) {
+    const detail = document.getElementById('calDetail');
+    const statusMap = {
+      green: 'Ready to Trade 🚀',
+      yellow: 'Trade with Caution ⚠️',
+      red: 'Avoid Trading 🛑',
+      blocked: 'Do Not Trade 🛑'
+    };
+    const d = new Date(dateStr);
+    const opts = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
+    document.getElementById('calDetailDate').textContent = d.toLocaleDateString('en-IN', opts);
+    const statusEl = document.getElementById('calDetailStatus');
+    statusEl.textContent = statusMap[entry.result] || entry.status;
+    statusEl.className = 'cal-detail-status ' + entry.result;
+    document.getElementById('calDetailMarket').textContent = entry.market ? '📈 ' + entry.market : '';
+    detail.classList.remove('hidden');
+  }
+
+  // ── GOOGLE DRIVE SYNC ──
+  const CLIENT_ID = '958378958208-crvfa23k9q8i7tcqlre0stfmlmdt8q8b.apps.googleusercontent.com';
+  const SCOPES = 'https://www.googleapis.com/auth/drive.appdata';
+  const FILE_NAME = 'moodfirst_history.json';
+  let driveToken = null;
+  let driveFileId = null;
+
+  function connectDrive() {
+    const client = google.accounts.oauth2.initTokenClient({
+      client_id: CLIENT_ID,
+      scope: SCOPES,
+      callback: (response) => {
+        if (response.access_token) {
+          driveToken = response.access_token;
+          document.getElementById('driveStatus').textContent = 'Connected ✅';
+          document.getElementById('driveActions').innerHTML = `
+            <button class="drive-btn sync" onclick="backupToDrive()">⬆ Backup</button>
+            <button class="drive-btn restore" onclick="restoreFromDrive()">⬇ Restore</button>
+          `;
+          findDriveFile();
+        }
+      },
+    });
+    client.requestAccessToken();
+  }
+
+  async function findDriveFile() {
+    try {
+      const res = await fetch(
+        'https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&q=name="' + FILE_NAME + '"',
+        { headers: { Authorization: 'Bearer ' + driveToken } }
+      );
+      const data = await res.json();
+      if (data.files && data.files.length > 0) {
+        driveFileId = data.files[0].id;
+        document.getElementById('driveStatus').textContent = 'Connected ✅ — Backup found';
+      }
+    } catch(e) { console.error(e); }
+  }
+
+  async function backupToDrive() {
+    if (!driveToken) { alert('Pehle Connect karo!'); return; }
+    const history = getHistory();
+    const blob = new Blob([JSON.stringify(history)], { type: 'application/json' });
+
+    document.getElementById('driveStatus').textContent = 'Saving...';
+
+    try {
+      let url, method;
+      if (driveFileId) {
+        url = 'https://www.googleapis.com/upload/drive/v3/files/' + driveFileId + '?uploadType=media';
+        method = 'PATCH';
+      } else {
+        // Create new file
+        const meta = await fetch('https://www.googleapis.com/drive/v3/files', {
+          method: 'POST',
+          headers: { Authorization: 'Bearer ' + driveToken, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: FILE_NAME, parents: ['appDataFolder'] })
+        });
+        const metaData = await meta.json();
+        driveFileId = metaData.id;
+        url = 'https://www.googleapis.com/upload/drive/v3/files/' + driveFileId + '?uploadType=media';
+        method = 'PATCH';
+      }
+
+      await fetch(url, {
+        method,
+        headers: { Authorization: 'Bearer ' + driveToken, 'Content-Type': 'application/json' },
+        body: JSON.stringify(history)
+      });
+
+      const now = new Date().toLocaleTimeString('en-IN');
+      document.getElementById('driveStatus').textContent = 'Backup saved ✅ — ' + now;
+    } catch(e) {
+      document.getElementById('driveStatus').textContent = 'Error saving. Try again.';
+    }
+  }
+
+  async function restoreFromDrive() {
+    if (!driveToken) { alert('Pehle Connect karo!'); return; }
+    if (!driveFileId) { alert('Drive pe koi backup nahi mila!'); return; }
+
+    document.getElementById('driveStatus').textContent = 'Restoring...';
+    try {
+      const res = await fetch(
+        'https://www.googleapis.com/drive/v3/files/' + driveFileId + '?alt=media',
+        { headers: { Authorization: 'Bearer ' + driveToken } }
+      );
+      const history = await res.json();
+      localStorage.setItem('moodfirst_history', JSON.stringify(history));
+      document.getElementById('driveStatus').textContent = 'Restored ✅ — ' + history.length + ' entries';
+      renderHistory();
+    } catch(e) {
+      document.getElementById('driveStatus').textContent = 'Error restoring. Try again.';
+    }
   }
 
   // Init

@@ -799,8 +799,27 @@
 
 <!-- HEADER -->
 <div class="header">
-  <div class="logo">Mood<span>First</span></div>
-  <div class="tagline">Your mood is first — before market mood.</div>
+  <div style="display:flex; align-items:center; gap:12px; margin-bottom:6px;">
+    <svg width="38" height="38" viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect width="38" height="38" rx="10" fill="url(#iconGrad)"/>
+      <defs>
+        <linearGradient id="iconGrad" x1="0" y1="0" x2="38" y2="38" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#1a1a2e"/>
+          <stop offset="100%" stop-color="#0d0d1a"/>
+        </linearGradient>
+      </defs>
+      <!-- Brain outline -->
+      <path d="M19 8C15.5 8 13 10.5 13 13.5C13 14.2 13.15 14.85 13.4 15.45C12.55 15.95 12 16.9 12 18C12 19.1 12.55 20.05 13.4 20.55C13.15 21.15 13 21.8 13 22.5C13 25.5 15.5 28 19 28C22.5 28 25 25.5 25 22.5C25 21.8 24.85 21.15 24.6 20.55C25.45 20.05 26 19.1 26 18C26 16.9 25.45 15.95 24.6 15.45C24.85 14.85 25 14.2 25 13.5C25 10.5 22.5 8 19 8Z" fill="none" stroke="#4f8ef7" stroke-width="1.4"/>
+      <!-- EKG pulse line -->
+      <polyline points="13,18 15.5,18 16.5,14.5 18,21.5 19.5,15.5 21,20 22.5,18 25,18" fill="none" stroke="#4f8ef7" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+      <!-- Glow dot -->
+      <circle cx="22.5" cy="18" r="1.5" fill="#4f8ef7" opacity="0.9"/>
+    </svg>
+    <div>
+      <div class="logo">Mood<span>First</span></div>
+      <div class="tagline">Your mood is first — before market mood.</div>
+    </div>
+  </div>
 </div>
 
 <!-- NAV TABS -->
@@ -1465,6 +1484,32 @@
     client.requestAccessToken();
   }
 
+  function autoConnectDrive() {
+    // Silent connect — no popup, only works if user already gave permission before
+    try {
+      const client = google.accounts.oauth2.initTokenClient({
+        client_id: CLIENT_ID,
+        scope: SCOPES,
+        prompt: '',  // Empty = no popup if already authorized
+        callback: (response) => {
+          if (response.access_token) {
+            driveToken = response.access_token;
+            document.getElementById('driveStatus').textContent = 'Connected ✅';
+            document.getElementById('driveActions').innerHTML = `
+              <button class="drive-btn sync" onclick="backupToDrive()">⬆ Backup</button>
+              <button class="drive-btn restore" onclick="restoreFromDrive()">⬇ Restore</button>
+            `;
+            findDriveFile();
+          }
+        },
+      });
+      client.requestAccessToken({ prompt: '' });
+    } catch(e) {
+      // Silent fail — user will see Connect button
+      console.log('Auto connect failed, user needs to connect manually');
+    }
+  }
+
   async function findDriveFile() {
     try {
       const res = await fetch(
@@ -1539,7 +1584,19 @@
   // Init
   setPageColor(1);
   updateBackBtn();
+
+  // Auto connect Drive when GSI library loads
+  window.addEventListener('load', () => {
+    setTimeout(() => {
+      try { autoConnectDrive(); } catch(e) {}
+    }, 1500); // Wait for GSI script to load
+  });
 </script>
+
+<!-- FOOTER -->
+<div style="margin-top:40px; text-align:center; font-size:11px; color:#3a3a50; letter-spacing:0.3px; font-family:'Manrope',sans-serif;">
+  🤝 Developed by Awish — Built with care to help traders
+</div>
 
 </body>
 </html>

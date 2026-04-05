@@ -1,0 +1,1164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MoodFirst — Trade Check</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Manrope:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0a0a0f;
+    --surface: #13131a;
+    --border: rgba(255,255,255,0.07);
+    --text: #e8e8f0;
+    --muted: #6b6b80;
+    --p1: #4f8ef7;
+    --p2: #f97316;
+    --p3: #a855f7;
+    --p4: #22c55e;
+    --danger: #ef4444;
+    --warn: #f59e0b;
+    --good: #22c55e;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Manrope', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0 16px 60px;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  /* Background glow */
+  body::before {
+    content: '';
+    position: fixed;
+    top: -200px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(79,142,247,0.08) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Header */
+  .header {
+    width: 100%;
+    max-width: 480px;
+    padding: 36px 0 28px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .logo {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 800;
+    font-size: 22px;
+    letter-spacing: -0.5px;
+    color: #fff;
+  }
+
+  .logo span {
+    color: var(--p1);
+  }
+
+  .tagline {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 4px;
+    font-style: italic;
+    letter-spacing: 0.3px;
+  }
+
+  /* Progress bar */
+  .progress-wrap {
+    width: 100%;
+    max-width: 480px;
+    margin-bottom: 28px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .progress-steps {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .step-pill {
+    flex: 1;
+    height: 4px;
+    border-radius: 99px;
+    background: var(--border);
+    transition: background 0.4s ease;
+  }
+
+  .step-pill.active { background: var(--current-color, var(--p1)); }
+  .step-pill.done { background: rgba(255,255,255,0.2); }
+
+  .progress-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .step-name {
+    font-family: 'Outfit', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--current-color, var(--p1));
+    transition: color 0.3s;
+  }
+
+  .step-count {
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  /* Card */
+  .card {
+    width: 100%;
+    max-width: 480px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 28px 24px;
+    position: relative;
+    z-index: 1;
+    animation: slideIn 0.35s cubic-bezier(0.16,1,0.3,1);
+  }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .card-icon {
+    font-size: 28px;
+    margin-bottom: 12px;
+    display: block;
+  }
+
+  .card-title {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700;
+    font-size: 20px;
+    color: #fff;
+    margin-bottom: 6px;
+    line-height: 1.2;
+  }
+
+  .card-subtitle {
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 24px;
+    line-height: 1.5;
+  }
+
+  /* Section labels */
+  .section-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 20px 0 10px;
+  }
+
+  .section-label:first-of-type { margin-top: 0; }
+
+  /* Checkbox items */
+  .check-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 11px 14px;
+    border-radius: 10px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-bottom: 6px;
+    background: rgba(255,255,255,0.02);
+    user-select: none;
+  }
+
+  .check-item:hover {
+    background: rgba(255,255,255,0.05);
+    border-color: var(--border);
+  }
+
+  .check-item.selected {
+    background: rgba(var(--item-rgb, 79,142,247), 0.1);
+    border-color: rgba(var(--item-rgb, 79,142,247), 0.3);
+  }
+
+  .check-item.selected .check-box {
+    background: rgba(var(--item-rgb, 79,142,247), 1);
+    border-color: transparent;
+  }
+
+  .check-item.selected .check-box::after {
+    opacity: 1;
+  }
+
+  .check-item.positive.selected {
+    background: rgba(34,197,94,0.1);
+    border-color: rgba(34,197,94,0.3);
+  }
+
+  .check-item.positive.selected .check-box {
+    background: var(--good);
+  }
+
+  .check-box {
+    width: 20px;
+    height: 20px;
+    border-radius: 6px;
+    border: 1.5px solid var(--border);
+    flex-shrink: 0;
+    position: relative;
+    transition: all 0.2s;
+  }
+
+  .check-box::after {
+    content: '';
+    position: absolute;
+    top: 3px; left: 6px;
+    width: 5px; height: 9px;
+    border: 2px solid #fff;
+    border-top: none;
+    border-left: none;
+    transform: rotate(45deg);
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+
+  .check-label {
+    font-size: 13.5px;
+    color: var(--text);
+    line-height: 1.4;
+    flex: 1;
+  }
+
+  .check-item.selected .check-label {
+    color: #fff;
+  }
+
+  /* Divider */
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 18px 0;
+  }
+
+  /* Button */
+  .btn-wrap {
+    width: 100%;
+    max-width: 480px;
+    margin-top: 16px;
+    position: relative;
+    z-index: 1;
+    display: flex;
+    gap: 10px;
+  }
+
+  .btn-back {
+    padding: 16px 20px;
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    background: rgba(255,255,255,0.05);
+    color: var(--muted);
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700;
+    font-size: 18px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+  }
+
+  .btn-back:hover { background: rgba(255,255,255,0.1); color: var(--text); }
+
+  .btn {
+    flex: 1;
+    padding: 16px;
+    border-radius: 14px;
+    border: none;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+    letter-spacing: 0.3px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: var(--current-color, var(--p1));
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .btn:hover { opacity: 0.88; transform: translateY(-1px); }
+  .btn:active { transform: translateY(0); }
+
+  .btn-arrow { font-size: 18px; transition: transform 0.2s; }
+  .btn:hover .btn-arrow { transform: translateX(4px); }
+
+  /* Result card */
+  .result-card {
+    width: 100%;
+    max-width: 480px;
+    border-radius: 20px;
+    padding: 36px 28px;
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    animation: slideIn 0.4s cubic-bezier(0.16,1,0.3,1);
+  }
+
+  .result-card.green {
+    background: linear-gradient(135deg, rgba(34,197,94,0.15), rgba(34,197,94,0.05));
+    border: 1px solid rgba(34,197,94,0.3);
+  }
+
+  .result-card.yellow {
+    background: linear-gradient(135deg, rgba(245,158,11,0.15), rgba(245,158,11,0.05));
+    border: 1px solid rgba(245,158,11,0.3);
+  }
+
+  .result-card.red {
+    background: linear-gradient(135deg, rgba(239,68,68,0.15), rgba(239,68,68,0.05));
+    border: 1px solid rgba(239,68,68,0.3);
+  }
+
+  .result-emoji { font-size: 52px; margin-bottom: 16px; display: block; }
+
+  .result-status {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 800;
+    font-size: 24px;
+    margin-bottom: 10px;
+    line-height: 1.2;
+  }
+
+  .result-card.green .result-status { color: var(--good); }
+  .result-card.yellow .result-status { color: var(--warn); }
+  .result-card.red .result-status { color: var(--danger); }
+
+  .result-desc {
+    font-size: 14px;
+    color: var(--muted);
+    line-height: 1.6;
+    max-width: 340px;
+    margin: 0 auto 24px;
+  }
+
+  .result-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+    margin-bottom: 28px;
+  }
+
+  .tag {
+    padding: 6px 14px;
+    border-radius: 99px;
+    font-size: 12px;
+    font-weight: 500;
+    background: rgba(255,255,255,0.06);
+    color: var(--muted);
+    border: 1px solid var(--border);
+  }
+
+  .btn-restart {
+    background: rgba(255,255,255,0.07);
+    color: var(--text);
+    border: 1px solid var(--border);
+    padding: 13px 28px;
+    border-radius: 12px;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-restart:hover { background: rgba(255,255,255,0.1); }
+
+  /* Score bar */
+  .score-section {
+    margin: 20px 0;
+  }
+
+  .score-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+
+  .score-label { font-size: 12px; color: var(--muted); }
+  .score-val { font-size: 12px; font-weight: 600; color: var(--text); }
+
+  .score-bar-bg {
+    height: 6px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 99px;
+    overflow: hidden;
+    margin-bottom: 14px;
+  }
+
+  .score-bar-fill {
+    height: 100%;
+    border-radius: 99px;
+    transition: width 0.6s cubic-bezier(0.16,1,0.3,1);
+  }
+
+  /* Blocked screen */
+  .blocked-card {
+    width: 100%;
+    max-width: 480px;
+    background: linear-gradient(135deg, rgba(239,68,68,0.12), rgba(239,68,68,0.04));
+    border: 1px solid rgba(239,68,68,0.25);
+    border-radius: 20px;
+    padding: 36px 28px;
+    text-align: center;
+    position: relative;
+    z-index: 1;
+    animation: slideIn 0.35s cubic-bezier(0.16,1,0.3,1);
+  }
+
+  .blocked-emoji { font-size: 48px; display: block; margin-bottom: 16px; }
+
+  .blocked-title {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 800;
+    font-size: 22px;
+    color: var(--danger);
+    margin-bottom: 10px;
+  }
+
+  .blocked-desc {
+    font-size: 13.5px;
+    color: var(--muted);
+    line-height: 1.6;
+    margin-bottom: 24px;
+  }
+
+  .quote-box {
+    background: rgba(255,255,255,0.04);
+    border-left: 3px solid var(--danger);
+    border-radius: 0 10px 10px 0;
+    padding: 14px 16px;
+    margin-bottom: 24px;
+    text-align: left;
+  }
+
+  .quote-text {
+    font-size: 13px;
+    color: var(--text);
+    font-style: italic;
+    line-height: 1.5;
+  }
+
+  /* History Screen */
+  .history-screen {
+    width: 100%;
+    max-width: 480px;
+    position: relative;
+    z-index: 1;
+    animation: slideIn 0.35s cubic-bezier(0.16,1,0.3,1);
+  }
+
+  .history-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+
+  .history-title {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700;
+    font-size: 18px;
+    color: #fff;
+  }
+
+  .history-clear {
+    font-size: 11px;
+    color: var(--muted);
+    cursor: pointer;
+    padding: 6px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: transparent;
+    transition: all 0.2s;
+  }
+
+  .history-clear:hover { color: var(--danger); border-color: var(--danger); }
+
+  .history-empty {
+    text-align: center;
+    padding: 48px 20px;
+    color: var(--muted);
+    font-size: 13px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+  }
+
+  .history-empty-icon { font-size: 36px; display: block; margin-bottom: 12px; }
+
+  .history-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px 18px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .history-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .history-dot.green { background: var(--good); }
+  .history-dot.yellow { background: var(--warn); }
+  .history-dot.red { background: var(--danger); }
+  .history-dot.blocked { background: #6b6b80; }
+
+  .history-info { flex: 1; }
+
+  .history-date {
+    font-size: 11px;
+    color: var(--muted);
+    margin-bottom: 3px;
+  }
+
+  .history-status {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+    color: #fff;
+  }
+
+  .history-market {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+
+  .history-badge {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 99px;
+  }
+
+  .history-badge.green { background: rgba(34,197,94,0.15); color: var(--good); }
+  .history-badge.yellow { background: rgba(245,158,11,0.15); color: var(--warn); }
+  .history-badge.red { background: rgba(239,68,68,0.15); color: var(--danger); }
+  .history-badge.blocked { background: rgba(107,107,128,0.15); color: var(--muted); }
+
+  /* Stats strip */
+  .stats-strip {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+
+  .stat-box {
+    flex: 1;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px 10px;
+    text-align: center;
+  }
+
+  .stat-num {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700;
+    font-size: 20px;
+    color: #fff;
+  }
+
+  .stat-num.green { color: var(--good); }
+  .stat-num.yellow { color: var(--warn); }
+  .stat-num.red { color: var(--danger); }
+
+  .stat-lbl {
+    font-size: 10px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+
+  /* Nav tabs */
+  .nav-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 24px;
+    width: 100%;
+    max-width: 480px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .nav-tab {
+    flex: 1;
+    padding: 10px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    font-family: 'Outfit', sans-serif;
+    font-weight: 600;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+  }
+
+  .nav-tab.active {
+    background: rgba(79,142,247,0.1);
+    border-color: rgba(79,142,247,0.3);
+    color: var(--p1);
+  }
+
+  /* Hidden */
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="logo">Mood<span>First</span></div>
+  <div class="tagline">Your mood is first — before market mood.</div>
+</div>
+
+<!-- NAV TABS -->
+<div class="nav-tabs" id="navTabs">
+  <button class="nav-tab active" id="tabCheck" onclick="switchTab('check')">📋 Today's Check</button>
+  <button class="nav-tab" id="tabHistory" onclick="switchTab('history')">📅 History</button>
+</div>
+
+<!-- PROGRESS -->
+<div class="progress-wrap" id="progressWrap">
+  <div class="progress-steps">
+    <div class="step-pill" id="pill1"></div>
+    <div class="step-pill" id="pill2"></div>
+    <div class="step-pill" id="pill3"></div>
+    <div class="step-pill" id="pill4"></div>
+  </div>
+  <div class="progress-label">
+    <span class="step-name" id="stepName">Life & Personal</span>
+    <span class="step-count" id="stepCount">Step 1 of 4</span>
+  </div>
+</div>
+
+<!-- PAGE 1: Life & Personal -->
+<div class="card" id="page1">
+  <span class="card-icon">🏠</span>
+  <div class="card-title">Life & Personal Factors</div>
+  <div class="card-subtitle">What's happening around you today? Select all that apply.</div>
+
+  <div class="check-item" data-page="1" onclick="toggleItem(this)" style="--item-rgb:239,68,68">
+    <div class="check-box"></div>
+    <div class="check-label">Family conflict or tension at home</div>
+  </div>
+  <div class="check-item" data-page="1" onclick="toggleItem(this)" style="--item-rgb:239,68,68">
+    <div class="check-box"></div>
+    <div class="check-label">Financial stress — bills, loans or expenses</div>
+  </div>
+  <div class="check-item" data-page="1" onclick="toggleItem(this)" style="--item-rgb:239,68,68">
+    <div class="check-box"></div>
+    <div class="check-label">Argument or conflict with someone</div>
+  </div>
+  <div class="check-item" data-page="1" onclick="toggleItem(this)" style="--item-rgb:239,68,68">
+    <div class="check-box"></div>
+    <div class="check-label">A major personal event today (good or bad)</div>
+  </div>
+  <div class="check-item" data-page="1" onclick="toggleItem(this)" style="--item-rgb:239,68,68">
+    <div class="check-box"></div>
+    <div class="check-label">Feeling isolated or lonely</div>
+  </div>
+  <div class="check-item" data-page="1" onclick="toggleItem(this)" style="--item-rgb:239,68,68">
+    <div class="check-box"></div>
+    <div class="check-label">Unwell or physical discomfort today</div>
+  </div>
+  <div class="check-item" data-page="1" onclick="toggleItem(this)" style="--item-rgb:239,68,68">
+    <div class="check-box"></div>
+    <div class="check-label">Poor or insufficient sleep last night</div>
+  </div>
+</div>
+
+<!-- PAGE 2: Trading History -->
+<div class="card hidden" id="page2">
+  <span class="card-icon">📊</span>
+  <div class="card-title">Trading History</div>
+  <div class="card-subtitle">How has your recent trading been? Select all that apply.</div>
+
+  <div class="check-item" data-page="2" onclick="toggleItem(this)" style="--item-rgb:249,115,22">
+    <div class="check-box"></div>
+    <div class="check-label">Took a significant loss yesterday or recently</div>
+  </div>
+  <div class="check-item" data-page="2" onclick="toggleItem(this)" style="--item-rgb:249,115,22">
+    <div class="check-box"></div>
+    <div class="check-label">Had a big win recently — overconfidence risk</div>
+  </div>
+  <div class="check-item" data-page="2" onclick="toggleItem(this)" style="--item-rgb:249,115,22">
+    <div class="check-box"></div>
+    <div class="check-label">Facing consecutive losses — revenge trading risk</div>
+  </div>
+  <div class="check-item" data-page="2" onclick="toggleItem(this)" style="--item-rgb:249,115,22">
+    <div class="check-box"></div>
+    <div class="check-label">Haven't traded in a long time — desperation risk</div>
+  </div>
+  <div class="check-item" data-page="2" onclick="toggleItem(this)" style="--item-rgb:249,115,22">
+    <div class="check-box"></div>
+    <div class="check-label">Missed a big market move — FOMO feeling</div>
+  </div>
+</div>
+
+<!-- PAGE 3: Inner State -->
+<div class="card hidden" id="page3">
+  <span class="card-icon">🧠</span>
+  <div class="card-title">Current Inner State</div>
+  <div class="card-subtitle">How are you feeling right now? Be honest.</div>
+
+  <div class="section-label">⚠️ Negative signals</div>
+  <div class="check-item" data-page="3" data-negative="true" onclick="toggleItem(this)" style="--item-rgb:168,85,247">
+    <div class="check-box"></div>
+    <div class="check-label">Anxious or nervous about the market</div>
+  </div>
+  <div class="check-item" data-page="3" data-negative="true" onclick="toggleItem(this)" style="--item-rgb:168,85,247">
+    <div class="check-box"></div>
+    <div class="check-label">Fearful of losing money</div>
+  </div>
+  <div class="check-item" data-page="3" data-negative="true" onclick="toggleItem(this)" style="--item-rgb:168,85,247">
+    <div class="check-box"></div>
+    <div class="check-label">Frustrated or irritated right now</div>
+  </div>
+  <div class="check-item" data-page="3" data-negative="true" onclick="toggleItem(this)" style="--item-rgb:168,85,247">
+    <div class="check-box"></div>
+    <div class="check-label">Greedy — wanting to recover losses fast</div>
+  </div>
+  <div class="check-item" data-page="3" data-negative="true" onclick="toggleItem(this)" style="--item-rgb:168,85,247">
+    <div class="check-box"></div>
+    <div class="check-label">Overconfident — feeling invincible today</div>
+  </div>
+  <div class="check-item" data-page="3" data-negative="true" onclick="toggleItem(this)" style="--item-rgb:168,85,247">
+    <div class="check-box"></div>
+    <div class="check-label">Urge to revenge trade after a loss</div>
+  </div>
+  <div class="check-item" data-page="3" data-negative="true" onclick="toggleItem(this)" style="--item-rgb:168,85,247">
+    <div class="check-box"></div>
+    <div class="check-label">Bored — trading just to do something</div>
+  </div>
+  <div class="check-item" data-page="3" data-negative="true" onclick="toggleItem(this)" style="--item-rgb:168,85,247">
+    <div class="check-box"></div>
+    <div class="check-label">Distracted or mentally unfocused</div>
+  </div>
+  <div class="check-item" data-page="3" data-negative="true" onclick="toggleItem(this)" style="--item-rgb:168,85,247">
+    <div class="check-box"></div>
+    <div class="check-label">Physically tired or very low energy</div>
+  </div>
+
+  <div class="divider"></div>
+  <div class="section-label">✅ Positive signals</div>
+
+  <div class="check-item positive" data-page="3" data-positive="true" onclick="toggleItem(this)">
+    <div class="check-box"></div>
+    <div class="check-label">Calm and composed</div>
+  </div>
+  <div class="check-item positive" data-page="3" data-positive="true" onclick="toggleItem(this)">
+    <div class="check-box"></div>
+    <div class="check-label">Focused and mentally sharp</div>
+  </div>
+  <div class="check-item positive" data-page="3" data-positive="true" onclick="toggleItem(this)">
+    <div class="check-box"></div>
+    <div class="check-label">Patient and disciplined</div>
+  </div>
+  <div class="check-item positive" data-page="3" data-positive="true" onclick="toggleItem(this)">
+    <div class="check-box"></div>
+    <div class="check-label">Confident with clear reasoning</div>
+  </div>
+</div>
+
+<!-- PAGE 4: Market Mood -->
+<div class="card hidden" id="page4">
+  <span class="card-icon">📈</span>
+  <div class="card-title">Market Mood</div>
+  <div class="card-subtitle">What is the market doing today? Select one.</div>
+
+  <div class="check-item" data-page="4" data-single="true" onclick="toggleSingle(this)" style="--item-rgb:34,197,94">
+    <div class="check-box"></div>
+    <div class="check-label">Bullish — strong upward momentum</div>
+  </div>
+  <div class="check-item" data-page="4" data-single="true" onclick="toggleSingle(this)" style="--item-rgb:34,197,94">
+    <div class="check-box"></div>
+    <div class="check-label">Bearish — strong downward pressure</div>
+  </div>
+  <div class="check-item" data-page="4" data-single="true" onclick="toggleSingle(this)" style="--item-rgb:34,197,94">
+    <div class="check-box"></div>
+    <div class="check-label">Sideways — range bound, no clear direction</div>
+  </div>
+  <div class="check-item" data-page="4" data-single="true" onclick="toggleSingle(this)" style="--item-rgb:34,197,94">
+    <div class="check-box"></div>
+    <div class="check-label">Volatile — sharp and unpredictable moves</div>
+  </div>
+  <div class="check-item" data-page="4" data-single="true" onclick="toggleSingle(this)" style="--item-rgb:34,197,94">
+    <div class="check-box"></div>
+    <div class="check-label">Event driven — budget, results or major news day</div>
+  </div>
+</div>
+
+<!-- BLOCKED (if page 1/2/3 too bad) -->
+<div class="blocked-card hidden" id="blockedScreen">
+  <span class="blocked-emoji">🛑</span>
+  <div class="blocked-title">Do Not Trade Today</div>
+  <div class="blocked-desc">Your personal state is not ready for the market. Protecting your capital is also a trade.</div>
+  <div class="quote-box">
+    <div class="quote-text">"Your mood is first — before market mood. The market will be there tomorrow. Your account may not be."</div>
+  </div>
+  <button class="btn-restart" onclick="restart()">← Start Again Tomorrow</button>
+</div>
+
+<!-- RESULT -->
+<div class="result-card hidden" id="resultScreen">
+  <span class="result-emoji" id="resultEmoji"></span>
+  <div class="result-status" id="resultStatus"></div>
+  <div class="result-desc" id="resultDesc"></div>
+  <div class="result-tags" id="resultTags"></div>
+  <button class="btn-restart" onclick="restart()">← Check Again</button>
+</div>
+
+<!-- HISTORY SCREEN -->
+<div class="history-screen hidden" id="historyScreen">
+  <div class="stats-strip" id="statsStrip"></div>
+  <div class="history-header">
+    <div class="history-title">Past Check-ins</div>
+    <button class="history-clear" onclick="clearHistory()">Clear All</button>
+  </div>
+  <div id="historyList"></div>
+</div>
+
+<!-- BUTTON -->
+<div class="btn-wrap" id="btnWrap">
+  <button class="btn-back" id="backBtn" onclick="prevPage()" style="display:none">←</button>
+  <button class="btn" id="mainBtn" onclick="nextPage()">
+    <span id="btnText">Continue</span>
+    <span class="btn-arrow">→</span>
+  </button>
+</div>
+
+<script>
+  let currentPage = 1;
+  const totalPages = 4;
+  let activeTab = 'check';
+
+  const colors = {
+    1: { hex: '#4f8ef7', rgb: '79,142,247', name: 'Life & Personal' },
+    2: { hex: '#f97316', rgb: '249,115,22', name: 'Trading History' },
+    3: { hex: '#a855f7', rgb: '168,85,247', name: 'Inner State' },
+    4: { hex: '#22c55e', rgb: '34,197,94',  name: 'Market Mood' },
+  };
+
+  // ── TAB SWITCHING ──
+  function switchTab(tab) {
+    activeTab = tab;
+    document.getElementById('tabCheck').classList.toggle('active', tab === 'check');
+    document.getElementById('tabHistory').classList.toggle('active', tab === 'history');
+
+    const checkEls = ['progressWrap','page1','page2','page3','page4','blockedScreen','resultScreen','btnWrap'];
+    checkEls.forEach(id => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      if (tab === 'history') el.classList.add('hidden');
+    });
+
+    if (tab === 'history') {
+      document.getElementById('historyScreen').classList.remove('hidden');
+      renderHistory();
+    } else {
+      document.getElementById('historyScreen').classList.add('hidden');
+      // Restore check tab state
+      restoreCheckTab();
+    }
+  }
+
+  function restoreCheckTab() {
+    // Show only what's currently active in check flow
+    const inResult = !document.getElementById('resultScreen').classList.contains('hidden');
+    const inBlocked = !document.getElementById('blockedScreen').classList.contains('hidden');
+
+    if (!inResult && !inBlocked) {
+      document.getElementById(`page${currentPage}`).classList.remove('hidden');
+      document.getElementById('progressWrap').classList.remove('hidden');
+      document.getElementById('btnWrap').classList.remove('hidden');
+    } else if (inResult) {
+      document.getElementById('resultScreen').classList.remove('hidden');
+    } else if (inBlocked) {
+      document.getElementById('blockedScreen').classList.remove('hidden');
+    }
+  }
+
+  // ── HISTORY STORAGE ──
+  function getHistory() {
+    try { return JSON.parse(localStorage.getItem('moodfirst_history') || '[]'); }
+    catch { return []; }
+  }
+
+  function saveToHistory(entry) {
+    const history = getHistory();
+    // Replace if same date exists
+    const idx = history.findIndex(h => h.date === entry.date);
+    if (idx > -1) history[idx] = entry;
+    else history.unshift(entry);
+    // Keep last 60 entries
+    localStorage.setItem('moodfirst_history', JSON.stringify(history.slice(0, 60)));
+  }
+
+  function clearHistory() {
+    if (confirm('Clear all history? This cannot be undone.')) {
+      localStorage.removeItem('moodfirst_history');
+      renderHistory();
+    }
+  }
+
+  function formatDate(dateStr) {
+    const d = new Date(dateStr);
+    const today = new Date();
+    const yesterday = new Date(); yesterday.setDate(today.getDate() - 1);
+    const opts = { day: 'numeric', month: 'short', year: 'numeric' };
+    if (d.toDateString() === today.toDateString()) return 'Today';
+    if (d.toDateString() === yesterday.toDateString()) return 'Yesterday';
+    return d.toLocaleDateString('en-IN', opts);
+  }
+
+  function renderHistory() {
+    const history = getHistory();
+    const listEl = document.getElementById('historyList');
+    const statsEl = document.getElementById('statsStrip');
+
+    // Stats
+    const green = history.filter(h => h.result === 'green').length;
+    const yellow = history.filter(h => h.result === 'yellow').length;
+    const red = history.filter(h => h.result === 'red').length;
+    const blocked = history.filter(h => h.result === 'blocked').length;
+
+    statsEl.innerHTML = `
+      <div class="stat-box"><div class="stat-num green">${green}</div><div class="stat-lbl">Ready</div></div>
+      <div class="stat-box"><div class="stat-num yellow">${yellow}</div><div class="stat-lbl">Caution</div></div>
+      <div class="stat-box"><div class="stat-num red">${red + blocked}</div><div class="stat-lbl">Avoided</div></div>
+      <div class="stat-box"><div class="stat-num">${history.length}</div><div class="stat-lbl">Total</div></div>
+    `;
+
+    if (history.length === 0) {
+      listEl.innerHTML = `
+        <div class="history-empty">
+          <span class="history-empty-icon">📭</span>
+          No check-ins yet. Complete today's check to see your history here.
+        </div>`;
+      return;
+    }
+
+    const badgeMap = {
+      green:   { label: 'Ready 🚀',   cls: 'green' },
+      yellow:  { label: 'Caution ⚠️', cls: 'yellow' },
+      red:     { label: 'Avoid 🛑',   cls: 'red' },
+      blocked: { label: 'Avoid 🛑',   cls: 'blocked' },
+    };
+
+    listEl.innerHTML = history.map(h => {
+      const b = badgeMap[h.result] || badgeMap.red;
+      return `
+        <div class="history-item">
+          <div class="history-dot ${b.cls}"></div>
+          <div class="history-info">
+            <div class="history-date">${formatDate(h.date)}</div>
+            <div class="history-status">${h.status}</div>
+            ${h.market ? `<div class="history-market">📈 ${h.market}</div>` : ''}
+          </div>
+          <div class="history-badge ${b.cls}">${b.label}</div>
+        </div>`;
+    }).join('');
+  }
+
+  // ── PAGE LOGIC ──
+  function setPageColor(page) {
+    const c = colors[page];
+    document.documentElement.style.setProperty('--current-color', c.hex);
+    document.getElementById('stepName').textContent = c.name;
+    document.getElementById('stepCount').textContent = `Step ${page} of ${totalPages}`;
+    for (let i = 1; i <= totalPages; i++) {
+      const pill = document.getElementById(`pill${i}`);
+      pill.classList.remove('active', 'done');
+      if (i < page) pill.classList.add('done');
+      else if (i === page) pill.classList.add('active');
+    }
+  }
+
+  function toggleItem(el) { el.classList.toggle('selected'); }
+
+  function toggleSingle(el) {
+    document.querySelectorAll('[data-single="true"]').forEach(i => i.classList.remove('selected'));
+    el.classList.add('selected');
+  }
+
+  function getPageScore(page) {
+    const items = document.querySelectorAll(`[data-page="${page}"]`);
+    let negCount = 0, posCount = 0, totalNeg = 0, totalPos = 0;
+    items.forEach(item => {
+      if (item.dataset.positive) { totalPos++; if (item.classList.contains('selected')) posCount++; }
+      else { totalNeg++; if (item.classList.contains('selected')) negCount++; }
+    });
+    return { negCount, posCount, totalNeg, totalPos };
+  }
+
+  function updateBackBtn() {
+    document.getElementById('backBtn').style.display = currentPage > 1 ? 'block' : 'none';
+  }
+
+  function prevPage() {
+    if (currentPage <= 1) return;
+    document.getElementById(`page${currentPage}`).classList.add('hidden');
+    currentPage--;
+    document.getElementById(`page${currentPage}`).classList.remove('hidden');
+    setPageColor(currentPage);
+    document.getElementById('btnText').textContent = currentPage === 4 ? 'See My Result' : 'Continue';
+    updateBackBtn();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function nextPage() {
+    if (currentPage === 1) {
+      const { negCount, totalNeg } = getPageScore(1);
+      if (negCount / totalNeg >= 0.5) { showBlocked(); return; }
+      showPage(2);
+    } else if (currentPage === 2) {
+      const p1 = getPageScore(1), p2 = getPageScore(2);
+      if ((p2.negCount + p1.negCount) / (p2.totalNeg + p1.totalNeg) >= 0.5) { showBlocked(); return; }
+      showPage(3);
+    } else if (currentPage === 3) {
+      const { negCount, posCount } = getPageScore(3);
+      if (negCount - posCount >= 3) { showBlocked(); return; }
+      showPage(4);
+    } else if (currentPage === 4) {
+      showResult();
+    }
+  }
+
+  function showPage(num) {
+    document.getElementById(`page${currentPage}`).classList.add('hidden');
+    currentPage = num;
+    document.getElementById(`page${currentPage}`).classList.remove('hidden');
+    setPageColor(currentPage);
+    if (currentPage === 4) document.getElementById('btnText').textContent = 'See My Result';
+    updateBackBtn();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function showBlocked() {
+    document.getElementById(`page${currentPage}`).classList.add('hidden');
+    document.getElementById('progressWrap').classList.add('hidden');
+    document.getElementById('btnWrap').classList.add('hidden');
+    document.getElementById('blockedScreen').classList.remove('hidden');
+
+    // Save to history
+    const today = new Date().toISOString().split('T')[0];
+    saveToHistory({ date: today, result: 'blocked', status: 'Do Not Trade Today', market: '' });
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function showResult() {
+    const p1 = getPageScore(1), p2 = getPageScore(2), p3 = getPageScore(3);
+    const totalNegFlags = p1.negCount + p2.negCount + p3.negCount;
+    const posFlags = p3.posCount;
+    const marketItem = document.querySelector('[data-page="4"].selected');
+    const market = marketItem ? marketItem.querySelector('.check-label').textContent.split('—')[0].trim() : '';
+
+    let result;
+    const netScore = totalNegFlags - posFlags;
+    if (netScore <= 1 && posFlags >= 2) result = 'green';
+    else if (netScore <= 3) result = 'yellow';
+    else result = 'red';
+
+    if (market.includes('Volatile') || market.includes('Event')) {
+      if (result === 'green') result = 'yellow';
+    }
+
+    const resultMap = {
+      green:  { emoji: '🚀', status: 'You Are Ready to Trade',  desc: 'Your personal and mental state is aligned. Stick to your plan, respect your stop losses, and trade with clarity.', tags: ['Stay disciplined','Follow your system','Respect SL'] },
+      yellow: { emoji: '⚠️', status: 'Trade with Caution',      desc: 'Some flags detected. Keep position sizes moderate, set tighter stop losses, and avoid impulsive decisions.',          tags: ['Reduce position size','Tight SL','No revenge trades'] },
+      red:    { emoji: '🛑', status: 'Avoid Trading Today',     desc: 'Multiple flags are active. Protecting your capital is also a trade. Come back when you are reset.',                  tags: ['Protect your capital','Rest and reset','Market will return'] },
+    };
+
+    const r = resultMap[result];
+
+    document.getElementById('page4').classList.add('hidden');
+    document.getElementById('progressWrap').classList.add('hidden');
+    document.getElementById('btnWrap').classList.add('hidden');
+
+    const rc = document.getElementById('resultScreen');
+    rc.className = `result-card ${result}`;
+    rc.classList.remove('hidden');
+    document.getElementById('resultEmoji').textContent = r.emoji;
+    document.getElementById('resultStatus').textContent = r.status;
+    document.getElementById('resultDesc').textContent = r.desc;
+
+    const tagsEl = document.getElementById('resultTags');
+    tagsEl.innerHTML = '';
+    r.tags.forEach(tag => { const t = document.createElement('div'); t.className = 'tag'; t.textContent = tag; tagsEl.appendChild(t); });
+    if (market) { const mt = document.createElement('div'); mt.className = 'tag'; mt.textContent = '📈 ' + market; tagsEl.appendChild(mt); }
+
+    // Save to history
+    const today = new Date().toISOString().split('T')[0];
+    saveToHistory({ date: today, result, status: r.status, market });
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function restart() {
+    document.querySelectorAll('.check-item').forEach(el => el.classList.remove('selected'));
+    currentPage = 1;
+    ['blockedScreen','resultScreen','page2','page3','page4'].forEach(id => document.getElementById(id).classList.add('hidden'));
+    ['page1','progressWrap','btnWrap'].forEach(id => document.getElementById(id).classList.remove('hidden'));
+    document.getElementById('btnText').textContent = 'Continue';
+    setPageColor(1);
+    updateBackBtn();
+
+    // Switch back to check tab
+    document.getElementById('tabCheck').classList.add('active');
+    document.getElementById('tabHistory').classList.remove('active');
+    document.getElementById('historyScreen').classList.add('hidden');
+    activeTab = 'check';
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // Init
+  setPageColor(1);
+  updateBackBtn();
+</script>
+
+</body>
+</html>
